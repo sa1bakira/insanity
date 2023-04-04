@@ -1,0 +1,15 @@
+html {
+    font-family: Arial;
+    background-color: black;
+    color: white;
+}
+
+
+left {
+    border: 1px solid white;
+    background-color: yellow;
+    width: 300px
+    margin: auto;
+}
+
+
