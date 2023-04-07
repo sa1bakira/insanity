@@ -14,7 +14,7 @@ printf "     Pastebin   \n\n"
 # Help
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     printf "Website: https://www.oetec.com/pastebin\n\n"
-    printf "Usage: $0 [OPTIONS] <file> [HOURS]\n"
+    printf "Usage: %s [OPTIONS] <file> [HOURS]\n" "$0"
     printf " <file>         :Must be a regular file, max size = 10MB\n"
     printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n"
     printf "Options:\n"
@@ -28,7 +28,7 @@ fi
 # - file exist
 # - is not larger than 10000000
 if [ -f "$1" ]; then
-    if [ "$(ls -l "$1" | cut -d ' ' -f5)" -gt 10000000 ]; then 
+    if [ "$(find "$1" -exec ls -l "{}" \; | cut -d ' ' -f5)" -gt 10000000 ]; then 
         printf  "ERROR: File size can't exceed 10MB.\n\n"
         exit 1 
     fi
@@ -69,18 +69,18 @@ printf "Expire  : %s hours\n\n" "$hours"
 # Send paste to server via curl
 # silent mode
 # connection-timeout = 5
-if data="$(curl \
-         -o /tmp/bar.tmp \
-                      -# \
-       --connect-timeout 5 \
-                  --data "post=pastebin & plain=true & hours=$hours" \
-        --data-urlencode "paste@$1" \
-        https://www.oetec.com/post \
-        && cat /tmp/bar.tmp && rm /tmp/bar.tmp)"; then
+if data="$(curl                 \
+           -o /tmp/bar.tmp      \
+           -#                   \
+           --connect-timeout 5  \
+           --data               "post=pastebin & plain=true & hours=$hours" \
+           --data-urlencode     "paste@$1" \
+           https://www.oetec.com/post        \
+           && cat /tmp/bar.tmp && rm /tmp/bar.tmp)"; then
 
     # Check if the server return an error message
     if echo "$data" | grep -i "fail"; then
-        printf "ERROR: paste failed."
+        printf "ERROR: paste failed.\n"
         exit 1
     else
         printf "\n"
