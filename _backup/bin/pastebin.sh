@@ -15,20 +15,27 @@ printf "     Pastebin   \n\n"
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     printf "Website: https://www.oetec.com/pastebin\n\n"
     printf "Usage: $0 [OPTIONS] <file> [HOURS]\n"
-    printf " <file>         :has to be a regular file\n"
-    printf " [HOURS]        :positive integer between 1 and 48\n"
-    printf "                 (default = 4 if omitted)\n"
+    printf " <file>         :Must be a regular file, max size = 10MB\n"
+    printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n"
     printf "Options:\n"
-    printf " -h, --help     :show this help\n"
+    printf " -h, --help     :Show this help\n"
     printf "\n"
     exit 0
 fi
 
 
-# Check if file exist
-if [ ! -f "$1" ]; then
+# Check if:
+# - file exist
+# - is not larger than 10000000
+if [ -f "$1" ]; then
+    if [ "$(ls -l "$1" | cut -d ' ' -f5)" -gt 10000000 ]; then 
+        printf  "ERROR: File size can't exceed 10MB.\n\n"
+        exit 1 
+    fi
+else
     printf "ERROR: need a valid file.\n\n"
-    exit 0
+    exit 1
+    
 fi
 
 
@@ -42,12 +49,12 @@ if [ -n "$2" ]; then
     	if [ "$2" -gt 0 ] && [ "$2" -lt 49 ]; then
             hours="$2"
         else
-            printf "ERROR: number must be between 1 and 48.\n\n"
-            exit 0
+            printf "ERROR: hours must be between 1 and 48.\n\n"
+            exit 1
 	fi
     else
-        printf "ERROR: number must be a positive integer.\n\n"
-	exit 0
+        printf "ERROR: hours must be a positive integer.\n\n"
+	exit 1
     fi
 else
     hours='4'
@@ -72,11 +79,13 @@ if data="$(curl \
     # Check if the server return an error message
     if echo "$data" | grep -i "fail"; then
         printf "ERROR: paste failed."
+        exit 1
     else
 	printf "HTML    : %s\n" "$(echo "$data" | sed '1p;d')"
 	printf "Plain   : %s\n\n" "$(echo "$data" | sed '2p;d')"
     fi
 else
     printf "ERROR: curl failed.\n\n"
+    exit 1
 fi
 
