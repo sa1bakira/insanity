@@ -8,18 +8,18 @@ printf "\n"
 printf " ┌─┐┌─┐┌┬┐┌─┐┌─┐\n"
 printf " │ │├┤  │ ├┤ │  \n"
 printf " └─┘└─┘ ┴ └─┘└─┘\n"
-printf "     Pastebin   \n\n"
+printf "     Pastebin   \n"
+printf "\n"
 
 
 # Help
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    printf "Website: https://www.oetec.com/pastebin\n\n"
-    printf "Usage: %s [OPTIONS] <file> [HOURS]\n" "$0"
-    printf " <file>         :Must be a regular file, max size = 10MB\n"
+    printf "Website: https://www.oetec.com/pastebin                                  \n\n"
+    printf "Usage: %s [OPTIONS] <file> [HOURS]                                         \n" "$0"
+    printf " <file>         :Must be a regular file, max size = 10MB                   \n"
     printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n"
-    printf "Options:\n"
-    printf " -h, --help     :Show this help\n"
-    printf "\n"
+    printf "Options:                                                                   \n"
+    printf " -h, --help     :Show this help                                          \n\n"
     exit 0
 fi
 
@@ -75,17 +75,17 @@ if data="$(curl                 \
            --connect-timeout 5  \
            --data               "post=pastebin & plain=true & hours=$hours" \
            --data-urlencode     "paste@$1" \
-           https://www.oetec.com/post        \
-           && cat /tmp/bar.tmp && rm /tmp/bar.tmp)"; then
+           https://www.oetec.com/post      \
+           && cat /tmp/bar.tmp             \
+           && rm /tmp/bar.tmp)"; then
 
     # Check if the server return an error message
     if echo "$data" | grep -i "fail"; then
         printf "ERROR: paste failed.\n"
         exit 1
     else
-        printf "\n"
-        printf "HTML    : %s\n" "$(echo "$data" | sed '1p;d')"
-        printf "Plain   : %s\n\n" "$(echo "$data" | sed '2p;d')"
+        printf "\nHTML    : %s\n"   "$(echo "$data" | sed '1p;d')"
+        printf   "Plain   : %s\n\n" "$(echo "$data" | sed '2p;d')"
     fi
 else
     printf "ERROR: curl failed.\n\n"
