@@ -67,21 +67,19 @@ printf "Expire  : %s hours\n\n" "$hours"
 
 
 # Send paste to server via curl
-# silent mode
-# connection-timeout = 5
-if data="$(curl                 \
-           -o /tmp/bar.tmp      \
-           -#                   \
-           --connect-timeout 5  \
-           --data               "post=pastebin & plain=true & hours=$hours" \
-           --data-urlencode     "paste@$1" \
-           https://www.oetec.com/post      \
-           && cat /tmp/bar.tmp             \
-           && rm /tmp/bar.tmp)"; then
+if data="$(curl                                      \
+           -o - -#                                   \
+           --connect-timeout 5                       \
+           --form                     post=pastebin  \
+           --form                     plain=true     \
+           --form                     "hours=$hours" \
+           --form                     "paste=<$1"    \
+           https://www.oetec.com/post                \
+           )"; then
 
     # Check if the server return an error message
     if echo "$data" | grep -i "fail"; then
-        printf "ERROR: paste failed.\n"
+        printf "ERROR: paste failed.\n\n"
         exit 1
     else
         printf "\nHTML    : %s\n"   "$(echo "$data" | sed '1p;d')"
