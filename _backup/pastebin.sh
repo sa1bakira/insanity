@@ -1,7 +1,8 @@
 #!/bin/sh
 
-# https://www.oetec.com/pastebin
-# Thanks to Owen!
+# https://www.oetec.com/pastebin - Thanks to o1
+
+# script by: panku, o1, deesix
 
 # Banner
 printf "\n"
@@ -12,24 +13,25 @@ printf "     Pastebin   \n"
 printf "\n"
 
 
-# Help
+# hELP
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    printf "Website: https://www.oetec.com/pastebin                                  \n\n"
-    printf "Usage: %s [OPTIONS] <file> [HOURS]                                         \n" "$0"
-    printf " <file>         :Must be a regular file, max size = 10MB                   \n"
-    printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n"
-    printf "Options:                                                                   \n"
-    printf " -h, --help     :Show this help                                          \n\n"
+    printf "Website: https://www.oetec.com/pastebin                                    \n\n"
+    printf "Usage: %s [OPTIONS] <file> [HOURS]                                           \n" "$0"
+    printf " <file>         :Must be a regular file, max size = 10MB                     \n"
+    printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n\n"
+    printf "Options:                                                                     \n"
+    printf " -h, --help     :Show this help                                            \n\n"
     exit 0
 fi
 
 
 # Check if:
 # - file exist
-# - is not larger than 10000000
+# - is not larger than 100000000
 if [ -f "$1" ]; then
-    if [ "$(find "$1" -exec ls -l "{}" \; | cut -d ' ' -f5)" -gt 10000000 ]; then 
-        printf  "ERROR: File size can't exceed 10MB.\n\n"
+    # For the sake of POSIX
+    if [ `wc -c < $1` -gt 100000000 ]; then
+        printf  "ERROR: File size can't exceed 100MB.\n\n"
         exit 1 
     fi
 else
