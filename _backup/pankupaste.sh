@@ -96,9 +96,17 @@ fi
 
 # Pre-paste output
 #/
-printf "Expire  : %s %s\n" "$EXPIRE_TIME" "$([ "$EXPIRE_TIME" -eq 1 ] && printf "hour" || printf "hours")"
-printf "Files   : %s\n\n"  "$(for F in "$@"; do printf "%s " "$(basename "$F" 2>/dev/null)"; done)"
+printf "Expire  : %s %s\n\n" "$EXPIRE_TIME" "$([ "$EXPIRE_TIME" -eq 1 ] && printf "hour" || printf "hours")"
 
+printf "Files   : %s in total\n\n" "${#}"
+
+COUNTER=1
+for F in "${@}"; do 
+    printf "%5d   : %s\n" "$COUNTER" "$(basename "$F" 2>/dev/null)";
+    COUNTER=$((COUNTER+1))
+done
+
+printf "\n"
 
 
 # Files loop
@@ -111,7 +119,7 @@ for FILE in "$@"; do
             printf  "ERROR   : %s is exceeding 100MB.\n\n" "$(basename "$FILE")"
         else
 
-            printf "Sending : %s: \n" "$FILE"
+            printf "Sending : %s \n" "$(basename "$FILE")"
         
             # Send paste to server via curl
             if DATA="$(curl                                            \
@@ -167,4 +175,6 @@ if [ -n "$LINKS" ]; then
     for LINE in $LINKS; do
         printf "%s\n" "$LINE"
     done
+    
+    printf "\n"
 fi
