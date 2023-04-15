@@ -13,14 +13,16 @@ xterm -geom 33x2+20+1000 -e 'watch -n 1 -t ~/bin/widget.sh' &
 xterm -geom 60x2+320+1000 -e 'ping 8.8.8.8' &
 
 # insanity
-xterm -geom 50x8+1500+900 -e 'watch -n 0.1 -t ~/bin/insanity.sh' &
+xterm -geom 70x3+1330+1010 -e 'watch -n 0.1 -t ~/bin/insanity.sh' &
 
 # utility
-xterm -geom 104x14+15+680 &
+xterm -geom 104x14+15+690 &
 
 # genunix
-xterm -geom 53x11+880+850 -e 'watch -n 5 -t ~/bin/genunix.sh' &
+xterm -geom 52x14+880+820 -e 'watch -n 5 -t ~/bin/genunix.sh' &
 
 # coding
 xterm -geom 127x47+880+45 &
 
+# spypaste
+xterm -geom 70x10+1330+820 -e '~/bin/spypaste.sh' &

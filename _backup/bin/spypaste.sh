@@ -2,7 +2,7 @@
 
 # Banner
 
-HANG=5
+HANG=1
 
 while :; do
     printf "                                    \n"
@@ -11,22 +11,22 @@ while :; do
     printf "░▀▀▀░█░░░░▄▄▄▀░█░░░░▀░░▀░▀▀▀░░▀░░▀▀▀\n"
     printf "   %s                             \n\n" "$(date)"
 
-    FLAG=0
     LINKS="$(grep -R -h -o "https://www.oetec.com/pastebin/.*[^\s]" ~/irclogs/ | cut -d ' ' -f1)"
 
     for PASTE in $(echo "$LINKS" | rev | cut -d '/' -f1 | rev); do
         if [ ! -f ~/spypaste/$PASTE ]; then
-            FLAG=1
-            printf "Downloading: %s\n" "$PASTE"
-            wget "https://www.oetec.com/pastebin/plain/$PASTE" -O ~/spypaste/$PASTE -q --show-progress
-            echo
+            if curl -s -I "https://www.oetec.com/pastebin/plain/$PASTE" | grep "Expires: " 1>/dev/null; then
+                printf "\nDownloading: %s\n" "$PASTE"
+                wget "https://www.oetec.com/pastebin/plain/$PASTE" -O ~/spypaste/$PASTE -q --show-progress
+                echo
+            else
+                printf "%s expired.\n" "$PASTE"
+                echo "expired" > ~/spypaste/$PASTE
+            fi
         fi
     done
 
-    if [ "$FLAG" -eq 0 ]; then
-        printf "No new paste found.\n\n"
-    fi
-    
-    printf "Waiting for new links...\n"
+    printf "\nWaiting for new links...\n"
     sleep $HANG
+    clear
 done
