@@ -1,35 +1,37 @@
 #!/bin/sh
 
-# https://www.oetec.com/pastebin
-# Thanks to Owen!
+# https://www.oetec.com/pastebin - Thanks to o1
+
+# script by: panku, o1, deesix
 
 # Banner
 printf "\n"
 printf " ┌─┐┌─┐┌┬┐┌─┐┌─┐\n"
 printf " │ │├┤  │ ├┤ │  \n"
 printf " └─┘└─┘ ┴ └─┘└─┘\n"
-printf "     Pastebin   \n\n"
+printf "     Pastebin   \n"
+printf "\n"
 
 
-# Help
+# hELP
 if [ $# -eq 0 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-    printf "Website: https://www.oetec.com/pastebin\n\n"
-    printf "Usage: $0 [OPTIONS] <file> [HOURS]\n"
-    printf " <file>         :Must be a regular file, max size = 10MB\n"
-    printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n"
-    printf "Options:\n"
-    printf " -h, --help     :Show this help\n"
-    printf "\n"
+    printf "Website: https://www.oetec.com/pastebin                                    \n\n"
+    printf "Usage: %s [OPTIONS] <file> [HOURS]                                           \n" "$0"
+    printf " <file>         :Must be a regular file, max size = 10MB                     \n"
+    printf " [HOURS]        :Positive integer between 1 and 48 (default = 4 if omitted)\n\n"
+    printf "Options:                                                                     \n"
+    printf " -h, --help     :Show this help                                            \n\n"
     exit 0
 fi
 
 
 # Check if:
 # - file exist
-# - is not larger than 10000000
+# - is not larger than 100000000
 if [ -f "$1" ]; then
-    if [ "$(ls -l "$1" | cut -d ' ' -f5)" -gt 10000000 ]; then 
-        printf  "ERROR: File size can't exceed 10MB.\n\n"
+    # For the sake of POSIX
+    if [ `wc -c < $1` -gt 100000000 ]; then
+        printf  "ERROR: File size can't exceed 100MB.\n\n"
         exit 1 
     fi
 else
@@ -67,22 +69,23 @@ printf "Expire  : %s hours\n\n" "$hours"
 
 
 # Send paste to server via curl
-# silent mode
-# connection-timeout = 5
-if data="$(curl \
-	   --connect-timeout 5 \
-	            --silent \
-	              --data "post=pastebin & plain=true & hours=$hours" \
-            --data-urlencode "paste@$1" \
-	    https://www.oetec.com/post)"; then
+if data="$(curl                                      \
+           -o - -#                                   \
+           --connect-timeout 5                       \
+           --form                     post=pastebin  \
+           --form                     plain=true     \
+           --form                     "hours=$hours" \
+           --form                     "paste=<$1"    \
+           https://www.oetec.com/post                \
+           )"; then
 
     # Check if the server return an error message
     if echo "$data" | grep -i "fail"; then
-        printf "ERROR: paste failed."
+        printf "ERROR: paste failed.\n\n"
         exit 1
     else
-	printf "HTML    : %s\n" "$(echo "$data" | sed '1p;d')"
-	printf "Plain   : %s\n\n" "$(echo "$data" | sed '2p;d')"
+        printf "\nHTML    : %s\n"   "$(echo "$data" | sed '1p;d')"
+        printf   "Plain   : %s\n\n" "$(echo "$data" | sed '2p;d')"
     fi
 else
     printf "ERROR: curl failed.\n\n"
