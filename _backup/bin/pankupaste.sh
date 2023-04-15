@@ -45,22 +45,38 @@ while getopts 'hc:o:fpme:' OPTION; do
     # --- Check expiration time
     c)
         # Try to curl the url
-        if HEADERS="$(curl -s -I "$OPTARG" | grep "Date: \|Expires: ")"; then
+        if HEADERS="$(curl -s -I "$OPTARG")"; then
 
-              BORN_DATE="$(echo "$HEADERS" | sed '1p;d' | cut -d ' ' -f2-)"
-            EXPIRE_DATE="$(echo "$HEADERS" | sed '2p;d' | cut -d ' ' -f2-)"
-               BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
-                           date -v "$BORN_DATE" +%s)"
-             EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
-                           date -v "$EXPIRE_DATE" +%s)"
-             DIFFERENCE=$(( $EXPIRE_SEC - $BORN_SEC ))
+            # Check if the header has the expire date
+            if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
 
-            printf "Created: %s\n" "$BORN_DATE"
-            printf "Expires: %s\n" "$EXPIRE_DATE"
+                # Parse all information
+                HEADERS="$(echo "$HEADERS" | tr -d '\r')"
 
-            perl -e 'printf ("Timer: %02d days %02d hours %02d minutes %02d seconds\n",(gmtime('$DIFFERENCE'))[3,2,1,0]);'
+                BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
+                EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
 
-            exit 0
+                BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
+                            date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
+
+                EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
+                            date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
+
+                DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
+
+                printf "Created: %s\n" "$BORN_DATE"
+                printf "Expires: %s\n" "$EXPIRE_DATE"
+
+                printf "Timer: %s hours %s minutes %s seconds\n" \
+                      "$((  DIFFERENCE / 3600))" \
+                      "$(( (DIFFERENCE % 3600) / 60))" \
+                      "$((  DIFFERENCE % 60))"
+
+                exit 0
+            else
+                printf "ERROR: broken link.\n"
+                exit 1
+            fi
         else
             printf "ERROR: broken link.\n"
             exit 1
