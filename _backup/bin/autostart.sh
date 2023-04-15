@@ -10,7 +10,7 @@ xterm -geom 33x2+20+950 -e 'watch -n 60 -t ~/bin/uptime.sh' &
 xterm -geom 33x2+20+1000 -e 'watch -n 1 -t ~/bin/widget.sh' &
 
 # ping
-xterm -geom 60x2+320+1000 -e 'ping 8.8.8.8' &
+xterm -geom 60x1+320+1000 -e 'watch -n 1 -t "ping -c 1 8.8.8.8 | sed \"2p;d\""' &
 
 # insanity
 xterm -geom 70x3+1330+1010 -e 'watch -n 0.1 -t ~/bin/insanity.sh' &
