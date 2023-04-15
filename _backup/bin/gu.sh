@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cp /home/panku/bin/* /home/panku/websites/insanity/_backup/bin
+cp -v /home/panku/bin/* /home/panku/websites/insanity/_backup/bin
 
 git -C /home/panku/websites/insanity status
 git -C /home/panku/websites/insanity add -A
