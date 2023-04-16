@@ -10,10 +10,12 @@ EXPIRE_TIME=4
 
 
 # Banner
-printf "                                \n" 
-printf "   __   _   __ _|_  _  |  o     \n"
-printf "   |-' |_|_ _\  |_ (/_ |] | |\| \n"
-printf "                                \n"
+printf """
+   ▄▀▀▄ █▀▀▄ █▀▀ ▀█▀ █▀▀ █▀▀▄  ▀  █▀▀▄
+   █▄▄█ █▄▄█ ▀▀▄  █  █▀▀ █▀▀▄  █▀ █  █
+   █    ▀  ▀ ▀▀▀  ▀  ▀▀▀ ▀▀▀▀ ▀▀▀ ▀  ▀
+
+"""
 
 
 
@@ -29,9 +31,53 @@ usage ()
     printf "  -e  <1-48>      :Paste expiration time in hours, default = 4 \n"
     printf "  -h              :Show this help                            \n\n"
     printf "Examples:                                                      \n"
-    printf "  %s -p -e 10 file.txt                                         \n" "$(basename "$0")"
+    printf "  %s -e 10 -p file.txt                                         \n" "$(basename "$0")"
     printf "  %s *.sh                                                      \n" "$(basename "$0")"
-    printf "  %s -f ~/file ~/bin/*.zip                                   \n\n" "$(basename "$0")"
+    printf "  %s -f file ~/bin/*.zip                                     \n\n" "$(basename "$0")"
+}
+
+
+
+# Check expiration function
+check_expire ()
+{
+    # Try to curl the url
+    if HEADERS="$(curl -s -I "$1")"; then
+
+        # Check if the header has the expire date
+        if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
+
+            # Parse all information
+            HEADERS="$(echo "$HEADERS" | tr -d '\r')"
+
+            BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
+            EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
+
+            BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
+                        date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
+
+            EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
+                        date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
+
+            DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
+
+            printf "Created: %s\n" "$BORN_DATE"
+            printf "Expires: %s\n" "$EXPIRE_DATE"
+
+            printf "Timer  : %s hours %s minutes %s seconds\n\n" \
+                  "$((  DIFFERENCE / 3600))" \
+                  "$(( (DIFFERENCE % 3600) / 60))" \
+                  "$((  DIFFERENCE % 60))"
+
+            exit 0
+        else
+            printf "ERROR: broken link.\n"
+            exit 1
+        fi
+    else
+        printf "ERROR: broken link.\n"
+        exit 1
+    fi
 }
 
 
@@ -43,45 +89,7 @@ while getopts 'hc:o:fpme:' OPTION; do
     h) usage; exit 1 ;;
 
     # --- Check expiration time
-    c)
-        # Try to curl the url
-        if HEADERS="$(curl -s -I "$OPTARG")"; then
-
-            # Check if the header has the expire date
-            if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
-
-                # Parse all information
-                HEADERS="$(echo "$HEADERS" | tr -d '\r')"
-
-                BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
-                EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
-
-                BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
-                            date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
-
-                EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
-                            date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
-
-                DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
-
-                printf "Created: %s\n" "$BORN_DATE"
-                printf "Expires: %s\n" "$EXPIRE_DATE"
-
-                printf "Timer: %s hours %s minutes %s seconds\n" \
-                      "$((  DIFFERENCE / 3600))" \
-                      "$(( (DIFFERENCE % 3600) / 60))" \
-                      "$((  DIFFERENCE % 60))"
-
-                exit 0
-            else
-                printf "ERROR: broken link.\n"
-                exit 1
-            fi
-        else
-            printf "ERROR: broken link.\n"
-            exit 1
-        fi
-    ;;
+    c) check_expire "$OPTARG" ;;
 
     # --- Full mode
     f) VERBOSE=1 ;;
@@ -93,12 +101,14 @@ while getopts 'hc:o:fpme:' OPTION; do
     m) VERBOSE=3 ;;
 
     # --- Expiration time
-    e)
-        # Check if expiration time: exist, is a non negative integer number, is between 1 and 48
-        # Default = 4 if omitted
+    e) 
+        # Check if expiration time (default = 4 if omitted): 
+        # - exist
+        # - is a non negative integer number
+        # - is between 1 and 48
         if [ "$OPTARG" -ge 0 ] 2>/dev/null || [ "$OPTARG" -lt 0 ] 2>/dev/null; then
             if [ "$OPTARG" -gt 0 ] && [ "$OPTARG" -lt 49 ]; then
-                EXPIRE_TIME="$OPTARG"
+               EXPIRE_TIME="$OPTARG"
             else
                 printf "ERROR: hours must be between 1 and 48.\n"
                 exit 1
@@ -107,8 +117,6 @@ while getopts 'hc:o:fpme:' OPTION; do
             printf "ERROR: hours must be a positive integer.\n"
             exit 1
         fi
-
-        EXPIRE_TIME="$OPTARG" 
     ;;
     
     # --- Illegal option
@@ -139,24 +147,29 @@ fi
 
 # Expiration time output
 printf "Paste expires in %sh" "$EXPIRE_TIME"
-printf " (%s)\n" "$(date -u -d "+${EXPIRE_TIME} hours" +'%H:%M:%S - %d/%B/%Y' 2>/dev/null || \
-                    date -u -v "+${EXPIRE_TIME}H"      +'%H:%M:%S - %d/%B/%Y')"
+printf " (%s)\n\n" "$(date -u -d "+${EXPIRE_TIME} hours" +'%H:%M:%S - %d/%B/%Y' 2>/dev/null || \
+                      date -u -v "+${EXPIRE_TIME}H"      +'%H:%M:%S - %d/%B/%Y')"
 
 
 
-# Looping through FILES
+# Looping through files
 for FILE in "$@"; do
+
     # Check if: 
     # - file exist
+    # - is not empty
     # - is not larger than 1000000000 (100MB)
+
+    # Check if it's a readable file
     if [ -f "$FILE" ]; then
+        # Check if not empty
         if [ -s "$FILE" ]; then
             # Check if filesize is < 100MB
             if [ "$(wc -c < "$FILE")" -gt 100000000 ]; then
                 printf  "ERROR: %s is exceeding 100MB.\n\n" "$(basename "$FILE")"
             else
                 # Sending output
-                printf "\nSending -> %s\n" "$(basename "$FILE")"
+                printf "Sending -> %s\n" "$(basename "$FILE")"
             
                 # Curl the file
                 if DATA="$(curl                                            \
@@ -191,7 +204,7 @@ for FILE in "$@"; do
                     case $VERBOSE in 
                         0)
                             printf "%s\n" "$(echo "$DATA" | sed '1p;d')"
-                            printf "%s\n" "$(echo "$DATA" | sed '2p;d')" ;;
+                            printf "%s\n\n" "$(echo "$DATA" | sed '2p;d')" ;;
                         1)
                             LINKS="$LINKS $(echo "$DATA" | sed '1p;d')"
                             LINKS="$LINKS $(echo "$DATA" | sed '2p;d')" ;;
@@ -201,28 +214,26 @@ for FILE in "$@"; do
                             LINKS="$LINKS $(echo "$DATA" | sed '1p;d')" ;;
                     esac
                 else
-                    printf "ERROR: curl failed.\n"
+                    printf "ERROR: curl failed.\n\n"
                 fi
             fi
         else
-            printf "\nERROR: %s is empty.\n" "$FILE"
-            exit 1 
+            printf "ERROR: %s is empty.\n\n" "$FILE"
         fi    
     else
-        printf "\nERROR: '%s' is not a valid file.\n" "$FILE"
-        exit 1 
+        printf "ERROR: '%s' is not a valid file.\n\n" "$FILE"
     fi
 done
 
 
 
-# Check if LINKS is not empty
+# When all files are uploaded print links
 if [ -n "$LINKS" ]; then
     printf "\nLinks\n-----\n"
 
-    # Print links
     for LINE in $LINKS; do
         printf "%s\n" "$LINE"
     done
+    echo
 fi
 
