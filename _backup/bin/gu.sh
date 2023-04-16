@@ -14,7 +14,7 @@ printf """
 """ > /home/panku/websites/insanity/list.html
 
 for FILE in $(find /home/panku/websites/insanity/_backup/bin | tail -n+2); do
-    printf "<a href=\"%s\">%s</a>\n" "$FILE" "$(echo "$FILE" | rev | cut -d '/' -f1 | rev )" >> /home/panku/websites/insanity/list.html
+    printf "<a href=\"%s\">%s</a><br>\n" "$FILE" "$(echo "$FILE" | rev | cut -d '/' -f1 | rev )" >> /home/panku/websites/insanity/list.html
 done
 
 printf """
