@@ -5,8 +5,9 @@
 HANG=1
 SPY_DIR=~/spypaste
 
-printf "             .spypaste.            \n"
-printf "   %s                              \n" "$(date)"
+printf "%12s.spypaste.\n" " "
+printf "%3s%s\n"          " " "$(date)"
+printf "%12sfiles: %s\n"  " " "$(ls -l "$SPY_DIR" | wc -l)" 
 
 LINKS="$(grep -R -h -o "https://www.oetec.com/pastebin/.*[^\s]" ~/irclogs/ | cut -d ' ' -f1)"
 
