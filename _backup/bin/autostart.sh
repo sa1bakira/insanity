@@ -10,7 +10,10 @@ xterm -fg red -geom 28x2+20+1000 -e 'tput civis; watch -n 1 -t ~/bin/uptime.sh' 
 xterm -fg cyan -geom 30x2+262+1000 -e 'tput civis; watch -n 1 -t ~/bin/widget.sh' &
 
 # ping
-xterm -fg green -geom 60x1+20+1050 -e 'tput civis; watch -n 1 -t "ping -c 1 8.8.8.8 | sed \"2p;d\""' &
+xterm -fg green -geom 28x1+20+1050 -e 'tput civis; watch -n 1 -t ~/bin/icmp.sh' &
+
+# vpn
+xterm -fg yellow -geom 30x1+262+1050 -e 'tpuc civis; watch -n 1 -t ~/bin/vpn_status.sh' &
 
 # insanity
 xterm -fg grey -geom 84x4+1230+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/insanity.sh' &
