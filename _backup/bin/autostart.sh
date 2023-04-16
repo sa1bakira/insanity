@@ -1,28 +1,28 @@
 #/bin/sh
 
 #irssi window
-xterm -geom 105x37+10+50 -e 'irssi' &
+xterm -geom 105x38+10+33 -e 'irssi' &
 
 #uptime
-xterm -geom 33x2+20+950 -e 'watch -n 60 -t ~/bin/uptime.sh' &
+xterm -fg red -geom 28x2+20+1000 -e 'tput civis; watch -n 1 -t ~/bin/uptime.sh' &
 
 # widget
-xterm -geom 33x2+20+1000 -e 'watch -n 1 -t ~/bin/widget.sh' &
+xterm -fg cyan -geom 30x2+262+1000 -e 'tput civis; watch -n 1 -t ~/bin/widget.sh' &
 
 # ping
-xterm -geom 60x1+320+1000 -e 'watch -n 1 -t "ping -c 1 8.8.8.8 | sed \"2p;d\""' &
+xterm -fg green -geom 60x1+20+1050 -e 'tput civis; watch -n 1 -t "ping -c 1 8.8.8.8 | sed \"2p;d\""' &
 
 # insanity
-xterm -geom 70x3+1330+1010 -e 'watch -n 0.1 -t ~/bin/insanity.sh' &
+xterm -fg grey -geom 84x4+1230+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/insanity.sh' &
 
 # utility
-xterm -geom 104x14+15+690 &
+xterm -geom 104x18+15+690 &
 
 # genunix
-xterm -geom 52x14+880+820 -e 'watch -n 5 -t ~/bin/genunix.sh' &
+xterm -fg yellow -geom 44x4+520+1000 -e 'tput civis; watch -n 5 -t ~/bin/genunix.sh' &
 
 # coding
-xterm -geom 127x47+880+45 &
+xterm -geom 130x59+860+33 &
 
 # spypaste
-xterm -geom 70x10+1330+820 -e '~/bin/spypaste.sh' &
+xterm -fg green -geom 35x4+910+1000 -e 'tput civis; watch -n 1 -t ~/bin/spypaste.sh' &
