@@ -9,7 +9,7 @@
      HISTORY=1
  SCRIPT_NAME="$(basename "$0")"
 HISTORY_FILE="/tmp/$SCRIPT_NAME.history"
-
+   TEXT_FLAG=1
 
 # Banner
 printf """
@@ -24,29 +24,35 @@ printf """
 # Usage
 usage ()
 {
-    printf "Usage: %s [OPTIONS] <file>                                               \n\n" "$(basename "$0")"
-    printf "Options:                                                                   \n"
-    printf "  -l  full | alive | dead     :List paste history                          \n"
-    printf "  -c  <url>                   :Check expiration time                       \n"
-    printf "  -f                          :Full mode, html and plain links             \n"
-    printf "  -p                          :Plain mode, plain links only                \n"
-    printf "  -m                          :HTML mode, html links only                  \n"
-    printf "  -e  <1-48>                  :Paste expiration time in hours, default = 4 \n"
-    printf "  -s                          :Save paste in history file                  \n"
-    printf "  -h                          :Show this help                            \n\n"
-    printf "Examples:                                                                  \n"
-    printf "  %s -e 10 -p file.txt                                                     \n" "$(basename "$0")"
-    printf "  %s *.sh                                                                  \n" "$(basename "$0")"
-    printf "  %s -f file ~/bin/*.zip                                                 \n\n" "$(basename "$0")"
+    printf "Usage: %s [OPTIONS] <file> \n\n" "$(basename "$0")"
+    printf "Options: \n"
+    printf "  -t  \"text\"          :Paste text (in double quotes)             \n"
+    printf "  -l  <format>        :Show history, formats: full, alive, dead    \n"
+    printf "  -c  <url>           :Check expiration time                       \n"
+    printf "  -f                  :Full mode, html and plain links             \n"
+    printf "  -p                  :Plain mode, plain links only                \n"
+    printf "  -m                  :HTML mode, html links only                  \n"
+    printf "  -e  <1-48>          :Paste expiration time in hours, default = 4 \n"
+    printf "  -s                  :Save paste in history file                  \n"
+    printf "  -h                  :Show this help                            \n\n"
 }
 
 
 
 # Options parse
-while getopts 'hl:c:o:fpme:s' OPTION; do
+while getopts 'ht:l:c:o:fpme:s' OPTION; do
   case "$OPTION" in 
     # --- Help
     h) usage; exit 1 ;;
+
+    
+    # --- Text paste
+    t)
+        # Check if string is in between double quotes
+        TEXT_PASTE="$OPTARG"
+        TEXT_FLAG=0
+    ;;
+
 
     # --- Show ali
     l)
@@ -190,14 +196,21 @@ shift $((OPTIND-1))
 if [ $OPTIND -eq 1 ] && [ $# -eq 0 ]; then
     printf "%s: try '-h' option for more information.\n" "$(basename "$0")"
     exit 1
-
-# Check if no ARGUMENTS are passed when OPTIONS are given
-elif [ $OPTIND -gt 1 ] && [ $# -eq 0 ]; then
-    printf "ERROR: no file given.\n"
-    exit 1
 fi
 
+# Check if no ARGUMENTS are passed when OPTIONS are given
+if [ "$TEXT_FLAG" -eq 1 ]; then
+    if [ $OPTIND -gt 1 ] && [ $# -eq 0 ]; then
+        printf "ERROR: no file given.\n"
+        exit 1
+    else
+        ARGS="$*"
+    fi
+else
+    ARGS="$TEXT_PASTE"
+fi
  
+
 
 # Expiration time output
 printf "Paste expires in %sh" "$EXPIRE_TIME"
@@ -205,88 +218,107 @@ printf " (%s)\n\n" "$(date -u -d "+${EXPIRE_TIME} hours" +'%H:%M:%S - %d/%B/%Y' 
                       date -u -v "+${EXPIRE_TIME}H"      +'%H:%M:%S - %d/%B/%Y')"
 
 
-
 # Looping through files
-for FILE in "$@"; do
-
+for FILE in $ARGS; do
     # Check if: 
     # - file exist
     # - is not empty
     # - is not larger than 1000000000 (100MB)
 
     # Check if it's a readable file
-    if [ -f "$FILE" ]; then
-        # Check if not empty
-        if [ -s "$FILE" ]; then
-            # Check if filesize is < 100MB
-            if [ "$(wc -c < "$FILE")" -gt 100000000 ]; then
-                printf  "ERROR: %s is exceeding 100MB.\n\n" "$(basename "$FILE")"
-            else
-                # Sending output
-                printf "Sending -> %s\n" "$(basename "$FILE")"
-            
-                # Curl the file
-                if DATA="$(curl                                            \
-                           --progress-bar                                  \
-                           --output - -#                                   \
-                           --connect-timeout 5                             \
-                           --form                     post=pastebin        \
-                           --form                     plain=true           \
-                           --form                     "hours=$EXPIRE_TIME" \
-                           --form                     "pastefile=@$FILE"   \
-                           https://www.oetec.com/post                      \
-                           )"; then
-
-
-                    # Check 404 from website
-                    if echo "$DATA" | grep "404" 1>/dev/null; then
-                        printf "ERROR: 404 - page not found.\n\n"
-                        exit 1
-                    fi
-
-                    # Check if server return POST variables error
-                    if echo "$DATA" | grep -i "fail" 1>/dev/null; then
-                        printf "ERROR: POST failed, check variables.\n\n"
-                        exit 1
-                    fi
-
-                    # Verbose output
-                    # 0 - default output
-                    # 1 - full
-                    # 2 - plain
-                    # 3 - html
-                    case $VERBOSE in 
-                        0)
-                            printf "%s\n" "$(echo "$DATA" | sed '1p;d')"
-                            printf "%s\n\n" "$(echo "$DATA" | sed '2p;d')" ;;
-                        1)
-                            LINKS="$LINKS $(echo "$DATA" | sed '1p;d')"
-                            LINKS="$LINKS $(echo "$DATA" | sed '2p;d')" ;;
-                        2)
-                            LINKS="$LINKS $(echo "$DATA" | sed '2p;d')" ;;
-                        3)
-                            LINKS="$LINKS $(echo "$DATA" | sed '1p;d')" ;;
-                    esac
-                    
-                    # History save
-                    if [ "$HISTORY" -eq 0 ]; then
-                        {
-                            printf "%s" "$(echo "$DATA" | sed '2p;d')"
-                            printf ","
-                            printf "%s\n" "$(date -u -d "+${EXPIRE_TIME} hours" +'%s' 2>/dev/null || \
-                                             date -u -v "+${EXPIRE_TIME}H"      +'%s')"
-                        } >> "$HISTORY_FILE" 
-                    fi
-
-                else
-                    printf "ERROR: curl failed.\n\n"
-                fi
-            fi
-        else
-            printf "ERROR: %s is empty.\n\n" "$FILE"
-        fi    
+    if [ -n "$TEXT_PASTE" ]; then
+        CONTENT="paste=$TEXT_PASTE"
     else
-        printf "ERROR: '%s' is not a valid file.\n\n" "$FILE"
+        if [ -f "$FILE" ]; then
+            # Check if not empty
+            if [ -s "$FILE" ]; then
+                # Check if filesize is < 100MB
+                if [ "$(wc -c < "$FILE")" -gt 100000000 ]; then
+                    printf  "ERROR: %s is exceeding 100MB.\n\n" "$(basename "$FILE")"
+                else
+                    CONTENT="pastefile=@$FILE"
+                fi
+            else
+                printf "ERROR: %s is empty.\n\n" "$FILE"
+            fi    
+        else
+            printf "ERROR: '%s' is not a valid file.\n\n" "$FILE"
+        fi
+    fi
+ 
+
+    if [ -n "$CONTENT" ]; then
+        # Sending output
+        printf "Sending -> " 
+        
+        if [ "$TEXT_FLAG" -eq 0 ]; then
+            printf "%s\n" "$TEXT_PASTE"    
+        else
+            printf "%s\n" "$(basename "$FILE")"
+        fi
+
+        # Curl the file
+        if DATA="$(curl                                            \
+                   --progress-bar                                  \
+                   --output - -#                                   \
+                   --connect-timeout 5                             \
+                   --form                     post=pastebin        \
+                   --form                     plain=true           \
+                   --form                     "hours=$EXPIRE_TIME" \
+                   --form                     "$CONTENT"           \
+                   https://www.oetec.com/post                      \
+                   )"; then
+
+            # Check 404 from website
+            if echo "$DATA" | grep "404" 1>/dev/null; then
+                printf "ERROR: 404 - page not found.\n\n"
+                exit 1
+            fi
+     
+            # Check if server return POST variables error
+            if echo "$DATA" | grep -i "fail" 1>/dev/null; then
+                printf "ERROR: POST failed, check variables.\n\n"
+                exit 1
+            fi
+     
+            # Verbose output
+            # 0 - default output
+            # 1 - full
+            # 2 - plain
+            # 3 - html
+            case $VERBOSE in 
+                0)
+                    printf "%s\n" "$(echo "$DATA" | sed '1p;d')"
+                    printf "%s\n\n" "$(echo "$DATA" | sed '2p;d')" ;;
+                1)
+                    LINKS="$LINKS $(echo "$DATA" | sed '1p;d')"
+                    LINKS="$LINKS $(echo "$DATA" | sed '2p;d')" ;;
+                2)
+                    LINKS="$LINKS $(echo "$DATA" | sed '2p;d')" ;;
+                3)
+                    LINKS="$LINKS $(echo "$DATA" | sed '1p;d')" ;;
+            esac
+            
+            # History save
+            if [ "$HISTORY" -eq 0 ]; then
+                {
+                    printf "%s" "$(echo "$DATA" | sed '2p;d')"
+                    printf ","
+                    printf "%s\n" "$(date -u -d "+${EXPIRE_TIME} hours" +'%s' 2>/dev/null || \
+                                     date -u -v "+${EXPIRE_TIME}H"      +'%s')"
+                } >> "$HISTORY_FILE" 
+            fi
+     
+        else
+            printf "ERROR: curl failed.\n\n"
+        fi
+
+    fi
+
+    CONTENT=''
+ 
+    if [ -n "$TEXT_PASTE" ]; then
+        break
     fi
 done
 
