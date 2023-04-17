@@ -182,7 +182,7 @@ while getopts 'hadc:o:fpme:s' OPTION; do
             if touch "$HISTORY_FILE"; then
                 printf "History file '%s' created.\n" "$HISTORY_FILE"
             else
-                printf "ERROR: failed to create file.\n"
+                printf "ERROR: failed to create history file.\n"
                 exit 1
             fi
         fi
