@@ -24,42 +24,50 @@ printf """
 # Usage
 usage ()
 {
-    printf "Usage: %s [OPTIONS] <file>                                   \n\n" "$(basename "$0")"
-    printf "Options:                                                       \n"
-    printf "  -a              :List alive links                            \n"
-    printf "  -d              :List dead links                             \n"
-    printf "  -c  <url>       :Check expiration time                       \n"
-    printf "  -f              :Full mode, html and plain links             \n"
-    printf "  -p              :Plain mode, plain links only                \n"
-    printf "  -m              :HTML mode, html links only                  \n"
-    printf "  -e  <1-48>      :Paste expiration time in hours, default = 4 \n"
-    printf "  -s              :Save paste in history file                  \n"
-    printf "  -h              :Show this help                            \n\n"
-    printf "Examples:                                                      \n"
-    printf "  %s -e 10 -p file.txt                                         \n" "$(basename "$0")"
-    printf "  %s *.sh                                                      \n" "$(basename "$0")"
-    printf "  %s -f file ~/bin/*.zip                                     \n\n" "$(basename "$0")"
+    printf "Usage: %s [OPTIONS] <file>                                               \n\n" "$(basename "$0")"
+    printf "Options:                                                                   \n"
+    printf "  -l  full | alive | dead     :List paste history                          \n"
+    printf "  -c  <url>                   :Check expiration time                       \n"
+    printf "  -f                          :Full mode, html and plain links             \n"
+    printf "  -p                          :Plain mode, plain links only                \n"
+    printf "  -m                          :HTML mode, html links only                  \n"
+    printf "  -e  <1-48>                  :Paste expiration time in hours, default = 4 \n"
+    printf "  -s                          :Save paste in history file                  \n"
+    printf "  -h                          :Show this help                            \n\n"
+    printf "Examples:                                                                  \n"
+    printf "  %s -e 10 -p file.txt                                                     \n" "$(basename "$0")"
+    printf "  %s *.sh                                                                  \n" "$(basename "$0")"
+    printf "  %s -f file ~/bin/*.zip                                                 \n\n" "$(basename "$0")"
 }
 
 
 
 # Options parse
-while getopts 'hadc:o:fpme:s' OPTION; do
+while getopts 'hl:c:o:fpme:s' OPTION; do
   case "$OPTION" in 
     # --- Help
     h) usage; exit 1 ;;
 
-    # --- Show alive links
-    a)
+    # --- Show ali
+    l)
         # Output history
         # Check if file exist
         if [ -f "$HISTORY_FILE" ]; then
 
-            printf    "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
-            printf    "Alive links\n"
+            printf "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
+            
+            case "$OPTARG" in
+                full)  HISTORY_LINKS="$(cat "$HISTORY_FILE")" ;;
+                alive) HISTORY_LINKS="$(awk -F\, '$2 > '"$(date +%s)"'' "$HISTORY_FILE")"  ;;
+                dead)  HISTORY_LINKS="$(awk -F\, '$2 < '"$(date +%s)"'' "$HISTORY_FILE")"  ;;
+                *)
+                    printf "ERROR: bad argument.\n"
+                    exit 1
+                ;;
+            esac
+            
+            printf    "Links \n"
             printf -- "------------\n"
- 
-            HISTORY_LINKS="$(awk -F\, '$2 > '"$(date +%s)"'' "$HISTORY_FILE")"
             
             if [ -z "$HISTORY_LINKS" ]; then
                 printf "No paste found.\n\n"
@@ -67,32 +75,6 @@ while getopts 'hadc:o:fpme:s' OPTION; do
                 printf "%s\n" "$(echo "$HISTORY_LINKS" | cut -d ',' -f1)"
             fi
   
-            exit 0
-        else
-            printf "ERROR: history file doesn't exist.\n"
-            exit 1
-        fi
-        
-    ;;
-
-    # --- Show dead links
-    d)
-        # Output history
-        # Check if file exist
-        if [ -f "$HISTORY_FILE" ]; then
-
-            printf    "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
-            printf    "Dead links\n"
-            printf -- "------------\n"
- 
-            HISTORY_LINKS="$(awk -F\, '$2 < '"$(date +%s)"'' "$HISTORY_FILE")"
-            
-            if [ -z "$HISTORY_LINKS" ]; then
-                printf "No paste found.\n\n"
-            else
-                printf "%s\n" "$(echo "$HISTORY_LINKS" | cut -d ',' -f1)"
-            fi
-
             exit 0
         else
             printf "ERROR: history file doesn't exist.\n"
