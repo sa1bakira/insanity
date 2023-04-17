@@ -3,10 +3,12 @@
 # Written by: panku, o1, deesix
 
 # Global variables
-EXPIRE_TIME=4
-    VERBOSE=0
-      LINKS=""
-
+ EXPIRE_TIME=4
+     VERBOSE=0
+       LINKS=""
+     HISTORY=1
+ SCRIPT_NAME="$(basename "$0")"
+HISTORY_FILE="/tmp/$SCRIPT_NAME.history"
 
 
 # Banner
@@ -24,11 +26,14 @@ usage ()
 {
     printf "Usage: %s [OPTIONS] <file>                                   \n\n" "$(basename "$0")"
     printf "Options:                                                       \n"
+    printf "  -a              :List alive links                            \n"
+    printf "  -d              :List dead links                             \n"
     printf "  -c  <url>       :Check expiration time                       \n"
     printf "  -f              :Full mode, html and plain links             \n"
     printf "  -p              :Plain mode, plain links only                \n"
     printf "  -m              :HTML mode, html links only                  \n"
     printf "  -e  <1-48>      :Paste expiration time in hours, default = 4 \n"
+    printf "  -s              :Save paste in history file                  \n"
     printf "  -h              :Show this help                            \n\n"
     printf "Examples:                                                      \n"
     printf "  %s -e 10 -p file.txt                                         \n" "$(basename "$0")"
@@ -38,58 +43,104 @@ usage ()
 
 
 
-# Check expiration function
-check_expire ()
-{
-    # Try to curl the url
-    if HEADERS="$(curl -s -I "$1")"; then
-
-        # Check if the header has the expire date
-        if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
-
-            # Parse all information
-            HEADERS="$(echo "$HEADERS" | tr -d '\r')"
-
-            BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
-            EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
-
-            BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
-                        date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
-
-            EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
-                        date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
-
-            DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
-
-            printf "Created: %s\n" "$BORN_DATE"
-            printf "Expires: %s\n" "$EXPIRE_DATE"
-
-            printf "Timer  : %s hours %s minutes %s seconds\n\n" \
-                  "$((  DIFFERENCE / 3600))" \
-                  "$(( (DIFFERENCE % 3600) / 60))" \
-                  "$((  DIFFERENCE % 60))"
-
-            exit 0
-        else
-            printf "ERROR: broken link.\n"
-            exit 1
-        fi
-    else
-        printf "ERROR: broken link.\n"
-        exit 1
-    fi
-}
-
-
-
 # Options parse
-while getopts 'hc:o:fpme:' OPTION; do
+while getopts 'hadc:o:fpme:s' OPTION; do
   case "$OPTION" in 
     # --- Help
     h) usage; exit 1 ;;
 
+    # --- Show alive links
+    a)
+        # Output history
+        # Check if file exist
+        if [ -f "$HISTORY_FILE" ]; then
+
+            printf    "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
+            printf    "Alive links\n"
+            printf -- "------------\n"
+ 
+            HISTORY_LINKS="$(awk -F\, '$2 > '"$(date +%s)"'' "$HISTORY_FILE")"
+            
+            if [ -z "$HISTORY_LINKS" ]; then
+                printf "No paste found.\n\n"
+            else
+                printf "%s\n" "$(echo "$HISTORY_LINKS" | cut -d ',' -f1)"
+            fi
+  
+            exit 0
+        else
+            printf "ERROR: history file doesn't exist.\n"
+            exit 1
+        fi
+        
+    ;;
+
+    # --- Show dead links
+    d)
+        # Output history
+        # Check if file exist
+        if [ -f "$HISTORY_FILE" ]; then
+
+            printf    "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
+            printf    "Dead links\n"
+            printf -- "------------\n"
+ 
+            HISTORY_LINKS="$(awk -F\, '$2 < '"$(date +%s)"'' "$HISTORY_FILE")"
+            
+            if [ -z "$HISTORY_LINKS" ]; then
+                printf "No paste found.\n\n"
+            else
+                printf "%s\n" "$(echo "$HISTORY_LINKS" | cut -d ',' -f1)"
+            fi
+
+            exit 0
+        else
+            printf "ERROR: history file doesn't exist.\n"
+            exit 1
+        fi
+        
+    ;;
+
     # --- Check expiration time
-    c) check_expire "$OPTARG" ;;
+    c)
+        # Try to curl the url
+        if HEADERS="$(curl -s -I "$OPTARG")"; then
+
+            # Check if the header has the expire date
+            if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
+
+                # Parse all information
+                HEADERS="$(echo "$HEADERS" | tr -d '\r')"
+
+                BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
+                EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
+
+                BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
+                            date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
+
+                EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
+                            date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
+
+                DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
+
+                printf "Created: %s\n" "$BORN_DATE"
+                printf "Expires: %s\n" "$EXPIRE_DATE"
+
+                printf "Timer  : %s hours %s minutes %s seconds\n\n" \
+                      "$((  DIFFERENCE / 3600))" \
+                      "$(( (DIFFERENCE % 3600) / 60))" \
+                      "$((  DIFFERENCE % 60))"
+
+                exit 0
+            else
+                printf "ERROR: broken link.\n"
+                exit 1
+            fi
+        else
+            printf "ERROR: broken link.\n"
+            exit 1
+        fi
+    ;;
 
     # --- Full mode
     f) VERBOSE=1 ;;
@@ -117,6 +168,27 @@ while getopts 'hc:o:fpme:' OPTION; do
             printf "ERROR: hours must be a positive integer.\n"
             exit 1
         fi
+    ;;
+    
+    # --- History
+    s)
+        # Check if:
+        # - a history file has been created already
+        # - create in /tmp/scriptname.sh.history
+       
+        HISTORY=0
+ 
+        if [ ! -f "$HISTORY_FILE" ]; then
+            if touch "$HISTORY_FILE"; then
+                printf "History file '%s' created.\n" "$HISTORY_FILE"
+            else
+                printf "ERROR: failed to create file.\n"
+                exit 1
+            fi
+        fi
+        
+        printf "Paste session will be saved in: %s\n\n" "$HISTORY_FILE"
+       
     ;;
     
     # --- Illegal option
@@ -179,7 +251,7 @@ for FILE in "$@"; do
                            --form                     post=pastebin        \
                            --form                     plain=true           \
                            --form                     "hours=$EXPIRE_TIME" \
-                           --form                     "paste=<$FILE"       \
+                           --form                     "pastefile=@$FILE"   \
                            https://www.oetec.com/post                      \
                            )"; then
 
@@ -213,6 +285,17 @@ for FILE in "$@"; do
                         3)
                             LINKS="$LINKS $(echo "$DATA" | sed '1p;d')" ;;
                     esac
+                    
+                    # History save
+                    if [ "$HISTORY" -eq 0 ]; then
+                        {
+                            printf "%s" "$(echo "$DATA" | sed '2p;d')"
+                            printf ","
+                            printf "%s\n" "$(date -u -d "+${EXPIRE_TIME} hours" +'%s' 2>/dev/null || \
+                                             date -u -v "+${EXPIRE_TIME}H"      +'%s')"
+                        } >> "$HISTORY_FILE" 
+                    fi
+
                 else
                     printf "ERROR: curl failed.\n\n"
                 fi
