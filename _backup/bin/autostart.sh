@@ -6,7 +6,7 @@
 xterm -fg green -geom 2x66+3+8 -e 'tput civis; watch -n 0.1 -t ~/bin/vertical_leap.sh' &
 
 #irssi
-xterm -geom 102x30+30+26 -e 'irssi' &
+xterm -geom 102x31+30+8 -e 'irssi' &
 
 # utility
 xterm -geom 102x29+30+519 -e '~/bin/banner.sh; bash' &
@@ -30,10 +30,10 @@ xterm -fg yellow -geom 44x4+520+1000 -e 'tput civis; watch -n 5 -t ~/bin/genunix
 xterm -geom 130x61+860+8 -e 'cat ~/bin/banner.txt; bash' &
 
 # spypaste
-xterm -fg green -geom 35x4+910+1000 -e 'tput civis; watch -n 1 -t ~/bin/spypaste.sh' &
+xterm -fg green -geom 35x4+900+1000 -e 'tput civis; watch -n 1 -t ~/bin/spypaste.sh' &
 
 # inject
-xterm -fg cyan -geom 42x4+1225+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/inject.sh' &
+xterm -fg cyan -geom 42x4+1220+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/inject.sh' &
 
 # insanity
-xterm -fg grey -geom 84x4+1230+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/insanity.sh' &
+xterm -fg grey -geom 42x4+1555+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/insanity.sh' &
