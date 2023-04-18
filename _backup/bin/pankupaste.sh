@@ -3,13 +3,15 @@
 # Written by: panku, o1, deesix
 
 # Global variables
- EXPIRE_TIME=4
-     VERBOSE=0
-       LINKS=""
-     HISTORY=1
- SCRIPT_NAME="$(basename "$0")"
-HISTORY_FILE="/tmp/$SCRIPT_NAME.history"
-   TEXT_FLAG=1
+PASTEBIN_VERSION=0.1
+ PASTEBIN_SOURCE="https://www.oetec.com/pastebin/plain/source"
+     EXPIRE_TIME=4
+         VERBOSE=0
+           LINKS=""
+         HISTORY=1
+     SCRIPT_NAME="$(basename "$0")"
+    HISTORY_FILE="/tmp/$SCRIPT_NAME.history"
+       TEXT_FLAG=1
 
 # Banner
 printf """
@@ -34,18 +36,61 @@ usage ()
     printf "  -m                  :HTML mode, html links only                  \n"
     printf "  -e  <1-48>          :Paste expiration time in hours, default = 4 \n"
     printf "  -s                  :Save paste in history file                  \n"
-    printf "  -h                  :Show this help                            \n\n"
+    printf "  -h                  :Show this help                              \n"
+    printf "  -u                  :Upgrade                                     \n"
+    printf "  -v                  :Show version                              \n\n"
 }
 
 
 
 # Options parse
-while getopts 'ht:l:c:o:fpme:s' OPTION; do
+while getopts 'hvut:l:c:o:fpme:s' OPTION; do
   case "$OPTION" in 
     # --- Help
     h) usage; exit 1 ;;
 
+    # --- Version
+    v)
+        printf "Version: %s\n" "$PASTEBIN_VERSION"
+        exit 0
+    ;;
     
+    # --- Upgrade
+    u)
+        VERSION_GRABBER="$(curl -s "$PASTEBIN_SOURCE" | \
+                           grep -m 1 "PASTEBIN_VERSION" | \
+                           cut -d '=' -f2)"
+        
+        if [ -n "$VERSION_GRABBER" ]; then 
+            # Check version
+            if [ "$(echo "$VERSION_GRABBER > $PASTEBIN_VERSION" | bc -l)" -eq 1 ]; then
+                printf "New version found: %s\n\n" "$VERSION_GRABBER"
+                
+                printf "Do you want to update? [Y/n]"
+                read -r -p ' : ' CHOICE
+               
+                if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
+                    if [ ! -f /tmp/"$SCRIPT_NAME".new ]; then
+                        wget "$PASTEBIN_SOURCE" -O /tmp/"$SCRIPT_NAME".new
+                        mv "$0" "$0".old
+                        mv /tmp/"$SCRIPT_NAME".new ./"$SCRIPT_NAME"
+                        chmod +x "$SCRIPT_NAME"
+                        rm "$0".old
+                        exit 0
+                    fi
+                else
+                    exit 0
+                fi
+            else
+               printf "Up-to-date\n"
+               exit 0
+            fi
+        else
+            printf "ERROR: can't get version number.\n"
+            exit 1
+        fi
+    ;;
+
     # --- Text paste
     t)
         # Check if string is in between double quotes
@@ -333,4 +378,5 @@ if [ -n "$LINKS" ]; then
     done
     echo
 fi
+
 
