@@ -4,7 +4,7 @@
 xterm -geom 102x30+30+26 -e 'irssi' &
 
 #vertical leap
-xterm -fg darkgreen -geom 1x65+8+25 -e 'tput civis; watch -n 0.1 -t ~/bin/vertical_leap.sh' &
+xterm -fg green -geom 1x65+8+25 -e 'tput civis; watch -n 0.1 -t ~/bin/vertical_leap.sh' &
 
 #uptime
 xterm -fg red -geom 27x2+30+1000 -e 'tput civis; watch -n 1 -t ~/bin/uptime.sh' &
