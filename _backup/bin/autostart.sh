@@ -1,8 +1,9 @@
 #/bin/sh
 
+# LXDE windows autostart
 
 #vertical leap
-xterm -fg green -geom 1x65+8+25 -e 'tput civis; watch -n 0.1 -t ~/bin/vertical_leap.sh' &
+xterm -fg green -geom 2x65+3+25 -e 'tput civis; watch -n 0.1 -t ~/bin/vertical_leap.sh' &
 
 #irssi
 xterm -geom 102x30+30+26 -e 'irssi' &
