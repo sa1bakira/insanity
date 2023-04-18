@@ -29,3 +29,6 @@ xterm -geom 130x59+860+33 -e '~/bin/banner.sh; bash' &
 
 # spypaste
 xterm -fg green -geom 35x4+910+1000 -e 'tput civis; watch -n 1 -t ~/bin/spypaste.sh' &
+
+# inject
+xterm -fg grey -geom 42x4+1225+1000 -e 'tput civis; watch -n 0.1 -t ~/bin/inject.sh' &
