@@ -27,7 +27,7 @@ xterm -fg yellow -geom 30x1+262+1050 -e 'tput civis; watch -n 1 -t ~/bin/vpn_sta
 xterm -fg yellow -geom 44x4+520+1000 -e 'tput civis; watch -n 5 -t ~/bin/genunix.sh' &
 
 # coding
-xterm -geom 130x60+860+25 -e '~/bin/banner.sh; bash' &
+xterm -geom 130x60+860+25 -e 'cat ~/bin/banner.txt; bash' &
 
 # spypaste
 xterm -fg green -geom 35x4+910+1000 -e 'tput civis; watch -n 1 -t ~/bin/spypaste.sh' &
