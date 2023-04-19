@@ -60,33 +60,46 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
         VERSION_GRABBER="$(curl -s "$PASTEBIN_SOURCE" | \
                            grep -m 1 "PASTEBIN_VERSION" | \
                            cut -d '=' -f2)"
-        
-        if [ -n "$VERSION_GRABBER" ]; then 
-            # Check version
-            if [ "$(echo "$VERSION_GRABBER > $PASTEBIN_VERSION" | bc -l)" -eq 1 ]; then
-                printf "New version found: %s\n\n" "$VERSION_GRABBER"
+
+        # Check if source is reachable        
+        if VERSION_GRABBER="$(curl -s --connect-timeout 3 \
+                                      --max-time 60 "$PASTEBIN_SOURCE")"; then
+
+            # Grab version
+            VERSION_GRABBER="$(echo "$VERSION_GRABBER" | grep -m 1 "PASTEBIN_VERSION" | cut -d '=' -f2 )"
+
+            # Check if the new version has been grabbed
+            if [ -n "$VERSION_GRABBER" ]; then 
                 
-                printf "Do you want to update? [Y/n]"
-                read -r -p ' : ' CHOICE
-               
-                if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
-                    if [ ! -f /tmp/"$SCRIPT_NAME".new ]; then
-                        wget "$PASTEBIN_SOURCE" -O /tmp/"$SCRIPT_NAME".new
+                # Compares it to the old one
+                if [ "$(echo "$VERSION_GRABBER > $PASTEBIN_VERSION" | bc -l)" -eq 1 ]; then
+                    printf "New version found: %s\n\n" "$VERSION_GRABBER"
+                    
+                    printf "Do you want to update? [Y/n]"
+                    read -r -p ' : ' CHOICE
+                   
+                    # User prompt to avoid forcing the user to upgrade
+                    if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
+
+                        # Upgrade phase 
+                        wget --timeout=10 "$PASTEBIN_SOURCE" -O /tmp/"$SCRIPT_NAME".new
                         mv "$0" "$0".old
                         mv /tmp/"$SCRIPT_NAME".new ./"$SCRIPT_NAME"
                         chmod +x "$SCRIPT_NAME"
                         rm "$0".old
+
                         exit 0
                     fi
                 else
-                    exit 0
+                   printf "Up-to-date\n"
+                   exit 0
                 fi
             else
-               printf "Up-to-date\n"
-               exit 0
+                printf "ERROR: can't get version number.\n"
+                exit 1
             fi
         else
-            printf "ERROR: can't get version number.\n"
+            printf "ERROR: curl failed.\n"
             exit 1
         fi
     ;;
@@ -137,7 +150,7 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
     # --- Check expiration time
     c)
         # Try to curl the url
-        if HEADERS="$(curl -s -I "$OPTARG")"; then
+        if HEADERS="$(curl -s -I --connect-timeout 3 --max-time 10 "$OPTARG")"; then
 
             # Check if the header has the expire date
             if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
@@ -306,6 +319,7 @@ for FILE in $ARGS; do
         if DATA="$(curl                                            \
                    --progress-bar                                  \
                    --output - -#                                   \
+                   --max-time 60                                   \
                    --connect-timeout 5                             \
                    --form                     post=pastebin        \
                    --form                     plain=true           \
