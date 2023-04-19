@@ -112,9 +112,8 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
     ;;
 
 
-    # --- Show ali
+    # --- Show history
     l)
-        # Output history
         # Check if file exist
         if [ -f "$HISTORY_FILE" ]; then
 
