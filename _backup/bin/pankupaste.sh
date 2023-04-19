@@ -75,8 +75,8 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
                 if [ "$(echo "$VERSION_GRABBER > $PASTEBIN_VERSION" | bc -l)" -eq 1 ]; then
                     printf "New version found: %s\n\n" "$VERSION_GRABBER"
                     
-                    printf "Do you want to update? [Y/n]"
-                    read -r -p ' : ' CHOICE
+                    printf "Do you want to update? [Y/n]: "
+                    read -r CHOICE
                    
                     # User prompt to avoid forcing the user to upgrade
                     if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
@@ -392,5 +392,4 @@ if [ -n "$LINKS" ]; then
     done
     echo
 fi
-
 
