@@ -76,6 +76,8 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
                    
                     # User prompt to avoid forcing the user to upgrade
                     if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
+                        
+                        exit
 
                         # Upgrade phase 
                         curl --connect-timeout 5        \
