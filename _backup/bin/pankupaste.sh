@@ -76,13 +76,11 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
                    
                     # User prompt to avoid forcing the user to upgrade
                     if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
-                        
-                        exit
 
                         # Upgrade phase 
-                        curl --connect-timeout 5        \
-                             --max-time 60              \
-                             -L "$PASTEBIN_SOURCE"      \
+                        curl --connect-timeout 5 \
+                             --max-time 60 \
+                             -L "$PASTEBIN_SOURCE" \
                              -O /tmp/"$SCRIPT_NAME".new
 
                         mv "$0" "$0".old
