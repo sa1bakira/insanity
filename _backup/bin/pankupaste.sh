@@ -45,199 +45,199 @@ usage ()
 
 # Options parse
 while getopts 'hvut:l:c:o:fpme:s' OPTION; do
-  case "$OPTION" in 
-    # --- Help
-    h) usage; exit 1 ;;
-
-    # --- Version
-    v)
-        printf "Version: %s\n" "$PASTEBIN_VERSION"
-        exit 0
-    ;;
-    
-    # --- Upgrade
-    u)
-        # Check if source is reachable        
-        if VERSION_GRABBER="$(curl -s --connect-timeout 3 \
-                                      --max-time 60 "$PASTEBIN_SOURCE")"; then
-
-            # Grab version
-            VERSION_GRABBER="$(echo "$VERSION_GRABBER" | grep -m 1 "PASTEBIN_VERSION" | cut -d '=' -f2 )"
-
-            # Check if the new version has been grabbed
-            if [ -n "$VERSION_GRABBER" ]; then 
-                
-                # Compares it to the old one
-                if [ "$(echo "$VERSION_GRABBER > $PASTEBIN_VERSION" | bc -l)" -eq 1 ]; then
-                    printf "New version found: %s\n\n" "$VERSION_GRABBER"
-                    
-                    printf "Do you want to update? [Y/n]: "
-                    read -r CHOICE
-                   
-                    # User prompt to avoid forcing the user to upgrade
-                    if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
-
-                        # Upgrade phase 
-                        curl -s --connect-timeout 5 --max-time 60 -L "$PASTEBIN_SOURCE" -o /tmp/"$SCRIPT_NAME".new
-                        mv "$0" "$0".old
-                        mv /tmp/"$SCRIPT_NAME".new ./"$SCRIPT_NAME"
-                        chmod +x "$SCRIPT_NAME"
-                        rm "$0".old
-
-                        exit 0
-                    fi
-                else
-                   printf "Up-to-date\n"
-                   exit 0
-                fi
-            else
-                printf "ERROR: can't get version number.\n"
-                exit 1
-            fi
-        else
-            printf "ERROR: curl failed.\n"
-            exit 1
-        fi
-    ;;
-
-    # --- Text paste
-    t)
-        # Check if string is in between double quotes
-        TEXT_PASTE="$OPTARG"
-        TEXT_FLAG=0
-    ;;
-
-
-    # --- Show history
-    l)
-        # Check if file exist
-        if [ -f "$HISTORY_FILE" ]; then
-
-            printf "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
-            
-            case "$OPTARG" in
-                full)  HISTORY_LINKS="$(cat "$HISTORY_FILE")" ;;
-                alive) HISTORY_LINKS="$(awk -F\, '$2 > '"$(date +%s)"'' "$HISTORY_FILE")"  ;;
-                dead)  HISTORY_LINKS="$(awk -F\, '$2 < '"$(date +%s)"'' "$HISTORY_FILE")"  ;;
-                *)
-                    printf "ERROR: bad argument.\n"
-                    exit 1
-                ;;
-            esac
-            
-            printf    "Links \n"
-            printf -- "------------\n"
-            
-            if [ -z "$HISTORY_LINKS" ]; then
-                printf "No paste found.\n\n"
-            else
-                printf "%s\n" "$(echo "$HISTORY_LINKS" | cut -d ',' -f1)"
-            fi
+    case "$OPTION" in 
+      # --- Help
+      h) usage; exit 1 ;;
   
-            exit 0
-        else
-            printf "ERROR: history file doesn't exist.\n"
-            exit 1
-        fi
-        
-    ;;
-
-    # --- Check expiration time
-    c)
-        # Try to curl the url
-        if HEADERS="$(curl -s -I --connect-timeout 3 --max-time 10 "$OPTARG")"; then
-
-            # Check if the header has the expire date
-            if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
-
-                # Parse all information
-                HEADERS="$(echo "$HEADERS" | tr -d '\r')"
-
-                BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
-                EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
-
-                BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
-                            date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
-
-                EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
-                            date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
-
-                DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
-
-                printf "Created: %s\n" "$BORN_DATE"
-                printf "Expires: %s\n" "$EXPIRE_DATE"
-
-                printf "Timer  : %s hours %s minutes %s seconds\n\n" \
-                      "$((  DIFFERENCE / 3600))" \
-                      "$(( (DIFFERENCE % 3600) / 60))" \
-                      "$((  DIFFERENCE % 60))"
-
-                exit 0
-            else
-                printf "ERROR: broken link.\n"
-                exit 1
-            fi
-        else
-            printf "ERROR: broken link.\n"
-            exit 1
-        fi
-    ;;
-
-    # --- Full mode
-    f) VERBOSE=1 ;;
-
-    # --- Plain mode
-    p) VERBOSE=2 ;;
-
-    # --- HTML mode
-    m) VERBOSE=3 ;;
-
-    # --- Expiration time
-    e) 
-        # Check if expiration time (default = 4 if omitted): 
-        # - exist
-        # - is a non negative integer number
-        # - is between 1 and 48
-        if [ "$OPTARG" -ge 0 ] 2>/dev/null || [ "$OPTARG" -lt 0 ] 2>/dev/null; then
-            if [ "$OPTARG" -gt 0 ] && [ "$OPTARG" -lt 49 ]; then
-               EXPIRE_TIME="$OPTARG"
-            else
-                printf "ERROR: hours must be between 1 and 48.\n"
-                exit 1
-            fi
-        else
-            printf "ERROR: hours must be a positive integer.\n"
-            exit 1
-        fi
-    ;;
+      # --- Version
+      v)
+          printf "Version: %s\n" "$PASTEBIN_VERSION"
+          exit 0
+      ;;
+      
+      # --- Upgrade
+      u)
+          # Check if source is reachable        
+          if VERSION_GRABBER="$(curl -s --connect-timeout 3 \
+                                        --max-time 60 "$PASTEBIN_SOURCE")"; then
+  
+              # Grab version
+              VERSION_GRABBER="$(echo "$VERSION_GRABBER" | grep -m 1 "PASTEBIN_VERSION" | cut -d '=' -f2 )"
+  
+              # Check if the new version has been grabbed
+              if [ -n "$VERSION_GRABBER" ]; then 
+                  
+                  # Compares it to the old one
+                  if [ "$(echo "$VERSION_GRABBER > $PASTEBIN_VERSION" | bc -l)" -eq 1 ]; then
+                      printf "New version found: %s\n\n" "$VERSION_GRABBER"
+                      
+                      printf "Do you want to update? [Y/n]: "
+                      read -r CHOICE
+                     
+                      # User prompt to avoid forcing the user to upgrade
+                      if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
+  
+                          # Upgrade phase 
+                          curl -s --connect-timeout 5 --max-time 60 -L "$PASTEBIN_SOURCE" -o /tmp/"$SCRIPT_NAME".new
+                          mv "$0" "$0".old
+                          mv /tmp/"$SCRIPT_NAME".new ./"$SCRIPT_NAME"
+                          chmod +x "$SCRIPT_NAME"
+                          rm "$0".old
+  
+                          exit 0
+                      fi
+                  else
+                     printf "Up-to-date\n"
+                     exit 0
+                  fi
+              else
+                  printf "ERROR: can't get version number.\n"
+                  exit 1
+              fi
+          else
+              printf "ERROR: curl failed.\n"
+              exit 1
+          fi
+      ;;
+  
+      # --- Text paste
+      t)
+          # Check if string is in between double quotes
+          TEXT_PASTE="$OPTARG"
+          TEXT_FLAG=0
+      ;;
+  
+  
+      # --- Show history
+      l)
+          # Check if file exist
+          if [ -f "$HISTORY_FILE" ]; then
+  
+              printf "Grabbing history from '%s'\n\n" "$HISTORY_FILE"
+              
+              case "$OPTARG" in
+                  full)  HISTORY_LINKS="$(cat "$HISTORY_FILE")" ;;
+                  alive) HISTORY_LINKS="$(awk -F\, '$2 > '"$(date +%s)"'' "$HISTORY_FILE")"  ;;
+                  dead)  HISTORY_LINKS="$(awk -F\, '$2 < '"$(date +%s)"'' "$HISTORY_FILE")"  ;;
+                  *)
+                      printf "ERROR: bad argument.\n"
+                      exit 1
+                  ;;
+              esac
+              
+              printf    "Links \n"
+              printf -- "------------\n"
+              
+              if [ -z "$HISTORY_LINKS" ]; then
+                  printf "No paste found.\n\n"
+              else
+                  printf "%s\n" "$(echo "$HISTORY_LINKS" | cut -d ',' -f1)"
+              fi
     
-    # --- History
-    s)
-        # Check if:
-        # - a history file has been created already
-        # - create in /tmp/scriptname.sh.history
-       
-        HISTORY=0
- 
-        if [ ! -f "$HISTORY_FILE" ]; then
-            if touch "$HISTORY_FILE"; then
-                printf "History file '%s' created.\n" "$HISTORY_FILE"
-            else
-                printf "ERROR: failed to create history file.\n"
-                exit 1
-            fi
-        fi
-        
-        printf "Paste session will be saved in: %s\n\n" "$HISTORY_FILE"
-       
-    ;;
-    
-    # --- Illegal option
-    *)
-        printf "%s: try '-h' for more information.\n" "$(basename "$0")"
-        exit 1
-    ;;
-    esac
+              exit 0
+          else
+              printf "ERROR: history file doesn't exist.\n"
+              exit 1
+          fi
+          
+      ;;
+  
+      # --- Check expiration time
+      c)
+          # Try to curl the url
+          if HEADERS="$(curl -s -I --connect-timeout 3 --max-time 10 "$OPTARG")"; then
+  
+              # Check if the header has the expire date
+              if echo "$HEADERS" | grep "Expires: " 1>/dev/null; then
+  
+                  # Parse all information
+                  HEADERS="$(echo "$HEADERS" | tr -d '\r')"
+  
+                  BORN_DATE="$(echo "$HEADERS" | grep "Date: " | cut -d ' ' -f3-6 | tr -d ',')"
+                  EXPIRE_DATE="$(echo "$HEADERS" | grep "Expires: " | cut -d ' ' -f3-6 | tr -d ',')"
+  
+                  BORN_SEC="$(date -d "$BORN_DATE" +%s 2>/dev/null || \
+                              date -j -f %d%b%Y%H%M%S "$(echo "$BORN_DATE" | tr -d ' :')" +%s)"
+  
+                  EXPIRE_SEC="$(date -d "$EXPIRE_DATE" +%s 2>/dev/null || \
+                              date -j -f %d%b%Y%H%M%S  "$(echo "$EXPIRE_DATE" | tr -d ' :')" +%s)"
+  
+                  DIFFERENCE=$(( EXPIRE_SEC - BORN_SEC ))
+  
+                  printf "Created: %s\n" "$BORN_DATE"
+                  printf "Expires: %s\n" "$EXPIRE_DATE"
+  
+                  printf "Timer  : %s hours %s minutes %s seconds\n\n" \
+                        "$((  DIFFERENCE / 3600))" \
+                        "$(( (DIFFERENCE % 3600) / 60))" \
+                        "$((  DIFFERENCE % 60))"
+  
+                  exit 0
+              else
+                  printf "ERROR: broken link.\n"
+                  exit 1
+              fi
+          else
+              printf "ERROR: broken link.\n"
+              exit 1
+          fi
+      ;;
+  
+      # --- Full mode
+      f) VERBOSE=1 ;;
+  
+      # --- Plain mode
+      p) VERBOSE=2 ;;
+  
+      # --- HTML mode
+      m) VERBOSE=3 ;;
+  
+      # --- Expiration time
+      e) 
+          # Check if expiration time (default = 4 if omitted): 
+          # - exist
+          # - is a non negative integer number
+          # - is between 1 and 48
+          if [ "$OPTARG" -ge 0 ] 2>/dev/null || [ "$OPTARG" -lt 0 ] 2>/dev/null; then
+              if [ "$OPTARG" -gt 0 ] && [ "$OPTARG" -lt 49 ]; then
+                 EXPIRE_TIME="$OPTARG"
+              else
+                  printf "ERROR: hours must be between 1 and 48.\n"
+                  exit 1
+              fi
+          else
+              printf "ERROR: hours must be a positive integer.\n"
+              exit 1
+          fi
+      ;;
+      
+      # --- History
+      s)
+          # Check if:
+          # - a history file has been created already
+          # - create in /tmp/scriptname.sh.history
+         
+          HISTORY=0
+   
+          if [ ! -f "$HISTORY_FILE" ]; then
+              if touch "$HISTORY_FILE"; then
+                  printf "History file '%s' created.\n" "$HISTORY_FILE"
+              else
+                  printf "ERROR: failed to create history file.\n"
+                  exit 1
+              fi
+          fi
+          
+          printf "Paste session will be saved in: %s\n\n" "$HISTORY_FILE"
+         
+      ;;
+      
+      # --- Illegal option
+      *)
+          printf "%s: try '-h' for more information.\n" "$(basename "$0")"
+          exit 1
+      ;;
+      esac
 done
 
 
