@@ -3,7 +3,7 @@
 # Written by: panku, o1, deesix
 
 # Global variables
-PASTEBIN_VERSION=0.2
+PASTEBIN_VERSION=0.1
   PASTEBIN_SOURCE="https://raw.githubusercontent.com/sa1bakira/insanity/main/_backup/bin/pankupaste.sh"
      EXPIRE_TIME=4
          VERBOSE=0
@@ -57,6 +57,9 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
     
     # --- Upgrade
     u)
+        echo "$PASTEBIN_SOURCE"
+        exit
+
         # Check if source is reachable        
         if VERSION_GRABBER="$(curl -s --connect-timeout 3 \
                                       --max-time 60 "$PASTEBIN_SOURCE")"; then
@@ -78,11 +81,7 @@ while getopts 'hvut:l:c:o:fpme:s' OPTION; do
                     if [ "$CHOICE" = 'Y' ] || [ "$CHOICE" = 'y' ] || [ "$CHOICE" = '' ]; then
 
                         # Upgrade phase 
-                        curl --connect-timeout 5 \
-                             --max-time 60 \
-                             -L "$PASTEBIN_SOURCE" \
-                             -O /tmp/"$SCRIPT_NAME".new
-
+                        curl -s --connect-timeout 5 --max-time 60 -L "$PASTEBIN_SOURCE" -o /tmp/"$SCRIPT_NAME".new
                         mv "$0" "$0".old
                         mv /tmp/"$SCRIPT_NAME".new ./"$SCRIPT_NAME"
                         chmod +x "$SCRIPT_NAME"
