@@ -30,7 +30,7 @@ xterm -fg yellow -geom 44x4+690+1000 -e 'tput civis; watch -x -n 5 -t ~/bin/genu
 xterm -geom 128x61+856+8 -e 'cat ~/bin/banner.txt; bash' &
 
 # mpv
-xterm -geom 50x4+270+1000 -e 'bash '
+xterm -geom 50x4+270+1000 -e 'bash'
 
 # spypaste
 xterm -fg green -geom 35x4+1060+1000 -e 'tput civis; watch -x -n 1 -t ~/bin/spypaste.sh' &
