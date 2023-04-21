@@ -15,7 +15,7 @@ html, body
 {
     border-left: 1px solid white;
     border-right: 1px solid white;
-    width: 340px;
+    width: 550px;
     height: auto;
     text-align: center;
     padding: 10px;
@@ -65,7 +65,7 @@ a:hover
 {
     font-size: 13px;
     border: 1px solid white;
-    width: 300px;
+    width: 500px;
     height: auto;
     margin: 20px auto;
     padding-bottom: 10px;
