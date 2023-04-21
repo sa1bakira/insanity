@@ -64,11 +64,16 @@ a:hover
 .you
 {
     font-size: 13px;
-        border: 1px solid white;
+    border: 1px solid white;
     width: 500px;
     height: auto;
     margin: 20px auto;
     padding-bottom: 10px;
+}
+
+p.manifesto
+{
+    text-align: justify;
 }
 
 /* Content DIV Top Part */
