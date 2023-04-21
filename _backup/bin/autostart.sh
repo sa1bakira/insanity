@@ -6,10 +6,10 @@
 #xterm -fg green -geom 2x66+3+8 -e 'tput civis; watch -x -n 0.1 -t ~/bin/vertical_leap.sh' &
 
 #irssi
-xterm -geom 102x31+30+8 -e 'irssi' &
+xterm -geom 102x31+12+5 -e 'irssi' &
 
 # utility
-xterm -geom 102x29+30+519 -e '~/bin/banner.sh; bash' &
+xterm -geom 102x24+15+580 -e '~/bin/banner.sh; bash' &
 
 #uptime
 xterm -fg red -geom 27x2+30+1000 -e 'tput civis; watch -x -n 1 -t ~/bin/uptime.sh' &
@@ -30,7 +30,7 @@ xterm -fg yellow -geom 44x4+690+1000 -e 'tput civis; watch -x -n 5 -t ~/bin/genu
 xterm -geom 128x61+856+8 -e 'cat ~/bin/banner.txt; bash' &
 
 # mpv
-xterm -fg red -geom 50x4+270+1000 -e 'bash '
+xterm -geom 50x4+270+1000 -e 'bash '
 
 # spypaste
 xterm -fg green -geom 35x4+1060+1000 -e 'tput civis; watch -x -n 1 -t ~/bin/spypaste.sh' &
