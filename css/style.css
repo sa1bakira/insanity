@@ -39,7 +39,7 @@ html, body
 --------------------------------------------- */
 .menu 
 {
-    font: 1rem Serif;
+    font-size: 1rem;
     border-bottom: 1px solid white;
     padding: 5px;
 }
