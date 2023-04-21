@@ -73,7 +73,9 @@ a:hover
 
 p.manifesto
 {
-    text-indent: 40px 
+    text-align: justify;
+    text-indent: 50px;
+    margin: 10px; 
 }
 
 /* Content DIV Top Part */
