@@ -17,6 +17,9 @@ xterm -fg red -geom 27x2+30+1000 -e 'tput civis; watch -x -n 1 -t ~/bin/uptime.s
 # ping
 xterm -fg green -geom 27x1+30+1050 -e 'tput civis; watch -x -n 1 -t ~/bin/icmp.sh' &
 
+# clock
+xterm -fg cyan -geom 24x2+270+1000 -e 'tput civis; watch -x -n 1 -t ~/bin/digital_clock.sh' &
+
 # widget
 #xterm -fg cyan -geom 30x2+262+1000 -e 'tput civis; watch -x -n 1 -t ~/bin/widget.sh' &
 
